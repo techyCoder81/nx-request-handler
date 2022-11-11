@@ -30,6 +30,4 @@ panic = "abort"
 panic = "abort"
 lto = true
 
-[build-dependencies]
-prettify-js = "0.1.0"
 
