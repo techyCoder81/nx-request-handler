@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use skyline_web::WebSession;
 use std::fmt;
 use crate::response::*;
+use crate::Progress;
 
 /// this represents the message format that we will
 /// receive from the frontend.
