@@ -27,10 +27,13 @@ engine.register("my_call_name", Some(3), |context| {
 ```
 1. `my_call_name`: this is the string name of the operation to be registered.
 2. `Some(3)`: this is the number of arguments we should expect. If the arguments present in the request from the frontend do not match this number, then the handler will not even be called, and instead an error will be returned to the frontend (the calling `Promise` will be rejected). If `None` is supplied instead, args will not be validated.
-3. `|context| {...}`: this is a closure or function, which must return `Result<String, String>`. The returned value (Ok or Error) is then sent to the frontend as an `accept()` or `reject()` on the original `Promise`.
+3. `|context| {...}`: this is a closure or function, which takes a `MessageContext` and must return `Result<String, String>`. The returned value (`Ok` or `Err`) is then sent to the frontend as an `accept()` or `reject()` on the original `Promise`. Note that the returned string can be populated with JSON data. Such JSON can then be used in the frontend via `JSON.parse()` to retreive complex structures. For example, one of the default handlers is `list_dir_all`, which returns recursively the entire directory structure starting at the given location, as a tree object.
+
+Finally, just call `engine.start();`. This will block the current thread, listening for requests and delegating the calls to the appropriate registered handlers, automatically rejecting calls which do not have a registered handler or which do not have the appropriate arguments. To shutdown the engine, you can simply call `exitSession()` in the frontend api. Alternatively, you may call `context.shutdown()` arbitrarily in any registered handler. After the handler which called `shutdown()` returns, the engine will exit, and `start()` will return.
 
 ## Putting it all together:
-```
+Plugin side:
+```rust
 // Create a WebSession instance, using skyline-web
 let session = Webpage::new()
     .htdocs_dir("hdr-launcher")
@@ -73,3 +76,26 @@ RequestEngine::new(session)
     })
     .start();
 ```
+
+Frontend usage for this example:
+```typescript
+let messenger = new DefaultMessenger();
+try {
+    // using default messenger and register_defaults()
+    let contents = await backend.readFile("sd:/somefile.json");
+    let obj = JSON.parse(contents);
+    console.info(obj.some_field);
+
+    // generic invocation for custom handlers
+    let version = await backend.customRequest("get_sdcard_root", null);
+    let result = await backend.customRequest("call_with_args", ["arg1", "arg2", "arg3"]);
+    let is_installed = await backend.booleanRequest("is_installed", null);
+
+    // another example of a default message
+    backend.exitSession();
+} catch (e) { 
+    // this will be called if any of the requests are rejected. you can also use .then() and .catch() on the individual calls.
+    console.error(e); 
+}
+```
+Note: it is also possible to `extend` the `DefaultMessenger` or the `BasicMessenger` classes to abstract away some of the work of custom calls.
