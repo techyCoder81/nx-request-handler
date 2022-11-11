@@ -33,6 +33,7 @@ Finally, just call `engine.start();`. This will block the current thread, listen
 
 ## Putting it all together:
 Plugin side:
+
 (more in-depth example usage can be found in the [HDR Launcher backend](https://github.com/techyCoder81/hdr-launcher-react/blob/main/switch/src/lib.rs))
 ```rust
 // Create a WebSession instance, using skyline-web
@@ -79,6 +80,7 @@ RequestEngine::new(session)
 ```
 
 Frontend for this example:
+
 (more in-depth example usage can be found in the [HDR Launcher frontend](https://github.com/techyCoder81/hdr-launcher-react/tree/main/src))
 ```typescript
 import { Progress, DefaultMessenger } from "nx-request-api"
