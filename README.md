@@ -32,8 +32,7 @@ engine.register("my_call_name", Some(3), |context| {
 Finally, just call `engine.start();`. This will block the current thread, listening for requests and delegating the calls to the appropriate registered handlers, automatically rejecting calls which do not have a registered handler or which do not have the appropriate arguments. To shutdown the engine, you can simply call `exitSession()` in the frontend api. Alternatively, you may call `context.shutdown()` arbitrarily in any registered handler. After the handler which called `shutdown()` returns, the engine will exit, and `start()` will return.
 
 ## Putting it all together:
-Plugin side:
-
+Plugin side:\
 (more in-depth example usage can be found in the [HDR Launcher backend](https://github.com/techyCoder81/hdr-launcher-react/blob/main/switch/src/lib.rs))
 ```rust
 // Create a WebSession instance, using skyline-web
@@ -79,8 +78,7 @@ RequestEngine::new(session)
     .start();
 ```
 
-Frontend for this example:
-
+Frontend for this example:\
 (more in-depth example usage can be found in the [HDR Launcher frontend](https://github.com/techyCoder81/hdr-launcher-react/tree/main/src))
 ```typescript
 import { Progress, DefaultMessenger } from "nx-request-api"
