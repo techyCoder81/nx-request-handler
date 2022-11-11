@@ -57,7 +57,8 @@ impl <'a>MessageContext<'a> {
     pub fn is_shutdown(&self) -> bool {
         self.is_shutdown
     }
-    /// sends the given `Progress` struct to the frontend
+    /// sends the given `Progress` struct to the frontend, for progress 
+    /// reporting of long-running operations.
     pub fn send_progress(&self, progress: Progress) {
         self.session.send(&serde_json::to_string(&StringResponse{
             id: "progress".to_string(), 

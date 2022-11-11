@@ -60,7 +60,13 @@ RequestEngine::new(session)
     })
     .register("call_with_args", Some(2), |context| {
         let args = context.arguments.unwrap();
-        let result = do_something(args[0], args[1]);
+        // report progress on long operation
+        context.send_progress(Progress::new("Starting".to_string(), "getting started!".to_string(), 0));
+        do_something_long(args[0]);
+
+        // report more progress partway through
+        context.send_progress(Progress::new("Halfway there".to_string(), "we are halfway there!".to_string(), 50));
+        do_other_long_thing(args[1]);
         result
     })
     .register("get_version", None, |context| {
