@@ -3,6 +3,9 @@ name = "nx-request-handler"
 version = "0.1.0"
 authors = ["techyCoder81"]
 edition = "2021"
+license-file = "LICENSE"
+description = "A Rust crate for streamlining messaging between Skyline Plugins and WebSessions."
+readme = "README.md"
 
 [package.metadata.skyline]
 titleid = "01006A800016E000" # Smash Ultimate
