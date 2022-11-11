@@ -4,13 +4,28 @@ use crate::message::*;
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::fmt::Display;
-use crate::{response::Progress};
 
 
 mod response;
 mod message;
 mod default_handlers;
 mod unzipper;
+
+/// progress data
+#[derive(Serialize, Deserialize)]
+pub struct Progress {
+    pub title: String,
+    pub info: String,
+    /// an u32 in the range 0-100
+    pub progress: u32
+}
+
+impl Progress {
+    pub fn new(title: String, info: String, progress: u32) -> Self {
+        return Progress { title: title, info: info, progress: progress }
+    }
+}
+
 
 /// An engine for streamlining the handling of backend requests by `skyline-web` applications.
 pub struct RequestEngine {

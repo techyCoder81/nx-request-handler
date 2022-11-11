@@ -7,8 +7,12 @@ use crate::response::*;
 /// receive from the frontend.
 #[derive(Serialize, Deserialize)]
 pub struct Message {
+    /// the unique ID of this request interaction, used to ensure
+    /// correct matching of request and associated response
     pub id: String,
+    /// the name of this call
     pub call_name: String,
+    /// the optional list of arguments
     pub arguments: Option<Vec<String>>
 }
 
@@ -22,25 +26,37 @@ impl fmt::Display for Message {
 /// this represents the message format that we hand
 /// to user-defined handlers
 pub struct MessageContext<'a> {
+    /// the unique ID of this request interaction, used to ensure
+    /// correct matching of request and associated response
     pub id: String,
+    /// the name of this call
     pub call_name: String,
+    /// the optional list of arguments
     pub arguments: Option<Vec<String>>,
+    /// the websession (USE GREAT CARE IN OPERATING ON THIS.)
     pub session: &'a WebSession,
+    /// whether we are signalling intent to shutdown the engine
     is_shutdown: bool
 }
 
 impl <'a>MessageContext<'a> {
-    fn build(message: Message, session: &WebSession) -> MessageContext {
+    /// builds the `MessageContext` for a handler to consume.
+    pub(crate) fn build(message: Message, session: &WebSession) -> MessageContext {
         return MessageContext { id: message.id, call_name: message.call_name, arguments: message.arguments, session: session, is_shutdown: false }
     }
+    /// immediately closes the session, and then signals that the engine
+    /// will shutdown and unblock the `start()` thread upon completion of
+    /// the current handler's operations.
     pub fn shutdown(&mut self) {
         self.session.exit();
         self.session.wait_for_exit();
         self.is_shutdown = true;
     }
+    /// whether the engine has been signalled to shut down
     pub fn is_shutdown(&self) -> bool {
         self.is_shutdown
     }
+    /// sends the given `Progress` struct to the frontend
     pub fn send_progress(&self, progress: Progress) {
         self.session.send(&serde_json::to_string(&StringResponse{
             id: "progress".to_string(), 
@@ -51,11 +67,11 @@ impl <'a>MessageContext<'a> {
             more: false
         }).unwrap());
     }
-    fn return_bool(&self, result: bool) {
+    pub(crate) fn return_bool(&self, result: bool) {
         //println!("Sending {}", result);
         self.return_ok(result.to_string().as_str());
     }
-    fn return_ok(&self, message: &str) {
+    pub(crate) fn return_ok(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending OK");
 
@@ -79,7 +95,7 @@ impl <'a>MessageContext<'a> {
             //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
         }
     }
-    fn return_error(&self, message: &str) {
+    pub(crate) fn return_error(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending ERROR");
         let total_length = message.len();

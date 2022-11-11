@@ -30,15 +30,6 @@ impl fmt::Display for BooleanResponse {
     }
 }
 
-/// progress data
-#[derive(Serialize, Deserialize)]
-pub struct Progress {
-    pub title: String,
-    pub info: String,
-    pub progress: u32
-}
-
-
 /// a response that contains a flag for whether the
 /// operation was successful, as well as a message field.
 #[derive(Serialize, Deserialize)]
