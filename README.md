@@ -91,7 +91,8 @@ try {
         (p: Progress) => console.info("Operation: " + p.title + ", Progress: " + p.progress)
     );
 
-    // read the contents of the file (in this case a json file), and parse the data into an object.
+    // read the contents of the file (in this case a json file),
+    // and then parse the data into an object.
     let contents = await messenger.readFile("sd:/hugefile.json");
     let obj = JSON.parse(contents);
     console.info(obj.some_field);
@@ -111,7 +112,8 @@ try {
     // another example of a default message call
     messenger.exitSession();
 } catch (e) { 
-    // this will be called if any of the requests are rejected. you can also use .then() and .catch() on the individual calls.
+    // This will be called if any of the requests are rejected. 
+    // You can also use .then() and .catch() on the individual calls.
     console.error(e); 
 }
 ```
