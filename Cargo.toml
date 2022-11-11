@@ -6,12 +6,13 @@ edition = "2021"
 license-file = "LICENSE"
 description = "A Rust crate for streamlining messaging between Skyline Plugins and WebSessions."
 readme = "README.md"
+repository = "https://github.com/techyCoder81/nx-request-handler"
 
 [package.metadata.skyline]
 titleid = "01006A800016E000" # Smash Ultimate
 
 [dependencies]
-skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
+skyline = "0.2.1"
 skyline-web = { git = "https://github.com/skyline-rs/skyline-web", features = ["json"] }
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
