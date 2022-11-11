@@ -29,7 +29,7 @@ fn readDirAll(dir: String, tree: &mut DirTree) {
 
 pub fn register_defaults(engine: &mut RequestEngine) {
     // handler for a basic backend ping
-    engine.register("ping", Some(0), |context| {
+    engine.register("ping", Some(0), |_context| {
         Ok("pong from switch!".to_string())
     });
     // handler for reading a file as a string
@@ -213,7 +213,7 @@ pub fn register_defaults(engine: &mut RequestEngine) {
                 true => 0,
                 false => 1
             };
-            let mut path_entry = PathEntry{path: fullpath, kind: kind};
+            let path_entry = PathEntry{path: fullpath, kind: kind};
             vec.push(path_entry);
         }
         let path_list = PathList{list: vec};
@@ -245,7 +245,7 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         context.shutdown();
         Ok("session should be closed, so this will never be sent".to_string())
     });
-    engine.register("exit_application", None, |context| {
+    engine.register("exit_application", None, |_context| {
         unsafe { skyline::nn::oe::ExitApplication();}
         // application is now closed, so we cannot return meaningfully.
     });

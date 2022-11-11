@@ -1,4 +1,4 @@
-use std::{path::Path, io::{BufRead, BufReader, Read, Seek, SeekFrom}};
+use std::{io::{BufReader, Read, Seek, SeekFrom}};
 
 pub struct NintendoFile {
     handle: nn::fs::FileHandle,
@@ -83,7 +83,7 @@ pub fn list_zip_contents(zip_path: &str) -> ZipResult<()> {
     let reader = BufReader::new(file);
     let mut zip = zip::ZipArchive::new(reader)?;
     for i in 0..zip.len() {
-        let mut file = zip.by_index(i)?;
+        let file = zip.by_index(i)?;
         println!("FileName: {}", file.name());
     }
 
