@@ -25,12 +25,21 @@ pub struct MessageContext<'a> {
     pub id: String,
     pub call_name: String,
     pub arguments: Option<Vec<String>>,
-    pub session: &'a WebSession
+    pub session: &'a WebSession,
+    is_shutdown: bool
 }
 
 impl <'a>MessageContext<'a> {
     pub fn build(message: Message, session: &WebSession) -> MessageContext {
-        return MessageContext { id: message.id, call_name: message.call_name, arguments: message.arguments, session: session }
+        return MessageContext { id: message.id, call_name: message.call_name, arguments: message.arguments, session: session, is_shutdown: false }
+    }
+    pub fn shutdown(&mut self) {
+        self.session.exit();
+        self.session.wait_for_exit();
+        self.is_shutdown = true;
+    }
+    pub fn is_shutdown(&self) -> bool {
+        self.is_shutdown
     }
     pub fn send_progress(&self, progress: Progress) {
         self.session.send(&serde_json::to_string(&StringResponse{
@@ -42,11 +51,11 @@ impl <'a>MessageContext<'a> {
             more: false
         }).unwrap());
     }
-    pub fn ok_bool(&self, result: bool) {
+    pub fn return_bool(&self, result: bool) {
         //println!("Sending {}", result);
-        self.ok(result.to_string().as_str());
+        self.return_ok(result.to_string().as_str());
     }
-    pub fn ok(&self, message: &str) {
+    pub fn return_ok(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending OK");
 
@@ -70,7 +79,7 @@ impl <'a>MessageContext<'a> {
             //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
         }
     }
-    pub fn error(&self, message: &str) {
+    pub fn return_error(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending ERROR");
         let total_length = message.len();

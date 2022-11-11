@@ -1,2 +1,69 @@
 # nx-request-handler
 A messaging handler for skyline-web plugins, as a streamlined backend implementation for the `nx-request-api` NPM package.
+
+# Example Usage
+
+## Basic Usage
+First, you must open a `WebSession`. 
+
+Then, it's as simple as creating a `RequestEngine` using that session:
+`let engine = RequestEngine::new(my_session);`
+
+Then, register the default handlers if desired:
+`engine.register_defaults();`
+This will register the default implementations for various common needs, such as `read_file`, `write_file`, `get_md5`, `list_dir`, `list_dir_all`, `get_request`, `delete_file`, etc.
+
+
+Register any custom callback handlers you may need:
+```engine.register("my_call_name", Some(3), |context| {
+    let args = context.arguments.unwrap();
+    return Ok(format!("args: {}, {}, {}", args[0], args[1], args[2]));
+})```
+`my_call_name`: this is the string name of the operation to be registered.
+`Some(3)`: this is the number of arguments we should expect. If the arguments present in the request from the frontend do not match this number, then the handler will not even be called, and instead an error will be returned to the frontend (the calling `Promise` will be rejected). If `None` is supplied instead, args will not be validated.
+`|context| {...}`: this is a closure or function, which must return `Result<String, String>`. The returned value (Ok or Error) is then sent to the frontend as an `accept()` or `reject()` on the original `Promise`.
+
+## Putting it all together:
+```
+// Create a WebSession instance, using skyline-web
+let session = Webpage::new()
+    .htdocs_dir("hdr-launcher")
+    .file("index.html", &HTML_TEXT)
+    .file("index.js", &JS_TEXT)
+    .file("logo_full.png", &LOGO_PNG)
+    .background(skyline_web::Background::Default)
+    .boot_display(skyline_web::BootDisplay::Black)
+    .open_session(skyline_web::Visibility::InitiallyHidden).unwrap();
+
+// show the session
+session.show();
+
+// create a RequestEngine, provided by nx-request-handler, to handle all requests
+RequestEngine::new(session)
+    .register_defaults()
+    .register("get_sdcard_root", None, |context| {
+        Ok("sd:/".to_string())
+    })
+    .register("is_installed", None, |context| {
+        let exists = Path::new("sd:/ultimate/mods/hdr").exists();
+        Ok(exists.to_string())
+    })
+    .register("call_with_args", Some(2), |context| {
+        let args = context.arguments.unwrap();
+        let result = do_something(args[0], args[1]);
+        result
+    })
+    .register("get_version", None, |context| {
+        let path = "sd:/ultimate/mods/hdr/ui/hdr_version.txt";
+        let exists = Path::new(path).exists();
+        if !exists {
+            return Err("Version file does not exist!".to_string());
+        } else {
+            return match fs::read_to_string(path) {
+                Ok(version) => Ok(version.trim().to_string()),
+                Err(e) => Err(e.to_string())
+            }
+        }
+    })
+    .start();
+```

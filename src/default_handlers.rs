@@ -30,7 +30,7 @@ fn readDirAll(dir: String, tree: &mut DirTree) {
 pub fn register_defaults(engine: &mut RequestEngine) {
     // handler for a basic backend ping
     engine.register("ping", Some(0), |context| {
-        context.ok("pong from switch!");
+        Ok("pong from switch!".to_string())
     });
     // handler for reading a file as a string
     engine.register("read_file", Some(1), |context| {
@@ -38,11 +38,11 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         let path = args[0].clone();
         let exists = Path::new(&path).exists();
         if !exists {
-            context.error("requested file does not exist!");
+            return Err("requested file does not exist!".to_string());
         } else {
-            match fs::read_to_string(path) {
-                Ok(data) => context.ok(&data.replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"")),
-                Err(e) => context.error(format!("{:?}", e).as_str())
+            return match fs::read_to_string(path) {
+                Ok(data) => Ok(data.replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"")),
+                Err(e) => Err(format!("While reading file, {}", e))
             }
         }
     });
@@ -56,23 +56,23 @@ pub fn register_defaults(engine: &mut RequestEngine) {
             //.progress_callback(|total, current| test(total, current))
             .download(url, location);
 
-        match result {
-            Ok(()) => context.ok("File downloaded successfully!"),
-            Err(e) => context.error(format!("Error during download, error code: {}", e).as_str())
+        return match result {
+            Ok(()) => Ok("File downloaded successfully!".to_string()),
+            Err(e) => Err(format!("Error during download, error code: {}", e))
         }
     });
-    // handler for deleing a file
+    // handler for deleting a file
     engine.register("delete_file", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
 
         let path = args[0].clone();
         let exists = Path::new(&path).exists();
         if !exists {
-            context.error("requested file already does not exist.");
+            return Err("requested file already does not exist.".to_string());
         } else {
-            match fs::remove_file(path) {
-                Ok(version) => context.ok("The file was removed successfully"),
-                Err(e) => context.error(format!("{:?}", e).as_str())
+            return match fs::remove_file(path) {
+                Ok(_) => Ok("The file was removed successfully".to_string()),
+                Err(e) => Err(format!("{}", e))
             }
         }
     });
@@ -83,14 +83,14 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         if exists {
             // delete existing file, if present
             match fs::remove_file(path.clone()) {
-                Ok(version) => println!("Deleted existing file successfully."),
-                Err(e) => context.error(format!("Could not delete existing file! Reason: {:?}", e).as_str())
+                Ok(_) => println!("Deleted existing file successfully."),
+                Err(e) => return Err(format!("Could not delete existing file! Reason: {:?}", e))
             }
         } 
 
-        match fs::write(path, args[1].clone()) {
-            Ok(version) => context.ok("The file was written successfully"),
-            Err(e) => context.error(format!("Could not write file. Reason: {:?}", e).as_str())
+        return match fs::write(path, args[1].clone()) {
+            Ok(_) => Ok("The file was written successfully".to_string()),
+            Err(e) => Err(format!("Could not write file. Reason: {:?}", e))
         }
     });
     engine.register("get_md5", Some(1), |context| {
@@ -98,19 +98,18 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         let path = args[0].clone();
         let exists = Path::new(&path).exists();
         if !exists {
-            context.error("requested file does not exist!");
+            return Err("requested file does not exist!".to_string());
         } else {
             // read the file
             let data = match fs::read(path) {
                 Ok(data) => data,
                 Err(e) => {
-                    context.error(format!("while reading file, {:?}", e).as_str()); 
-                    return;
+                    return Err(format!("while reading file, {:?}", e));
                 }
             };
             // compute the md5 and return the value
             let digest = md5::compute(data);
-            context.ok(format!("{:x}", digest).as_str());
+            return Ok(format!("{:x}", digest));
         }
     });
     engine.register("unzip", Some(2), |context| {
@@ -119,29 +118,22 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         let destination = args[1].clone();
 
         if !Path::new(&filepath).exists() {
-            context.error(format!("file {} does not exist!", filepath).as_str());
-            return;
+            return Err(format!("file {} does not exist!", filepath));
         }
         if !Path::new(&filepath).is_file() {
-            context.error(format!("path {} is not a file!", filepath).as_str());
-            return;
+            return Err(format!("path {} is not a file!", filepath));
         }
 
         if !Path::new(&destination).exists() {
-            context.error(format!("path {} does not exist!", destination).as_str());
-            return;
+            return Err(format!("path {} does not exist!", destination));
         }
         if !Path::new(&destination).is_dir() {
-            context.error(format!("path {} is not a directory!", destination).as_str());
-            return;
+            return Err(format!("path {} is not a directory!", destination));
         }
 
         let mut zip = match unzipper::get_zip_archive(&filepath) {
             Ok(zip) => zip,
-            Err(_) => {
-                context.error("Could not parse zip file!");
-                return;
-            }
+            Err(_) => return Err("Could not parse zip file!".to_string())
         };
     
         let count = zip.len();
@@ -164,30 +156,28 @@ pub fn register_defaults(engine: &mut RequestEngine) {
             std::fs::write(path, file_data).unwrap();
         }
 
-        context.ok("unzip succeeded");
+        Ok("unzip succeeded".to_string())
     });
     engine.register("file_exists", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
         let path = args[0].clone();
         let exists = Path::new(&path).exists() && Path::new(&path).is_file();
-        context.ok_bool(exists);
+        Ok(exists.to_string())
     });
     engine.register("dir_exists", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
         let path = args[0].clone();
         let exists = Path::new(&path).exists() && Path::new(&path).is_dir();
-        context.ok_bool(exists);
+        Ok(exists.to_string())
     });
     engine.register("list_all_files", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
         let path = args[0].clone();
         if !Path::new(&path).exists() {
-            context.error(format!("path {} does not exist!", path).as_str());
-            return;
+            return Err(format!("path {} does not exist!", path));
         }
         if !Path::new(&path).is_dir() {
-            context.error(format!("path {} is not a directory!", path).as_str());
-            return;
+            return Err(format!("path {} is not a directory!", path));
         }
 
         let mut subtree = DirTree{name: path.clone(), files: Vec::new(), dirs: Vec::new()};
@@ -196,23 +186,20 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         let json = match serde_json::to_string(&subtree) {
             Ok(val) => val.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\""),
             Err(e) => {
-                context.error(format!("Could not serialize to json DirTree. Error: {}", e).as_str()); 
-                return;
+                return Err(format!("Could not serialize to json DirTree. Error: {}", e)); 
             }
         };
         //println!("replying to list_all_files with a string of size: {}", json.len());
-        context.ok(&json);
+        Ok(json)
     });
     engine.register("list_dir", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
         let path = args[0].clone();
         if !Path::new(&path).exists() {
-            context.error(format!("path {} does not exist!", path).as_str());
-            return;
+            return Err(format!("path {} does not exist!", path));
         }
         if !Path::new(&path).is_dir() {
-            context.error(format!("path {} is not a directory!", path).as_str());
-            return;
+            return Err(format!("path {} is not a directory!", path));
         }
 
         let paths = fs::read_dir(path).unwrap();
@@ -233,12 +220,11 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         let json = match serde_json::to_string(&path_list) {
             Ok(val) => val.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\""),
             Err(e) => {
-                context.error(format!("Could not serialize to json PathList. Error: {}", e).as_str()); 
-                return;
+                return Err(format!("Could not serialize to json PathList. Error: {}", e)); 
             }
         };
         //println!("replying to list_dir with: {}", &json);
-        context.ok(&json);
+        Ok(json)
     });
     engine.register("get_request", Some(1), |context| {
         let args = context.arguments.as_ref().unwrap();
@@ -250,20 +236,18 @@ pub fn register_defaults(engine: &mut RequestEngine) {
 
         //println!("got result from GET");
 
-        match result {
-            Ok(body) => {
-                if body.len() < 1000 {
-                    //println!("Result: {}", body);
-                } else {
-                    //println!("body is very large, not println-ing.");
-                }
-                context.ok(&body.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\""));
-            },
-            Err(e) => {
-                //println!("Error: {}", e);
-                context.error(format!("Error during download: {}", e).as_str());
-            }
+        return match result {
+            Ok(body) => Ok(body.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"")),
+            Err(e) => Err(format!("Error during download: {}", e))
         }
+    });
+    engine.register("exit_session", None, |context| {
+        context.shutdown();
+        Ok("session should be closed, so this will never be sent".to_string())
+    });
+    engine.register("exit_application", None, |context| {
+        unsafe { skyline::nn::oe::ExitApplication();}
+        // application is now closed, so we cannot return meaningfully.
     });
 }
 
