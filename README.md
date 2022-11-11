@@ -25,9 +25,9 @@ engine.register("my_call_name", Some(3), |context| {
     return Ok(format!("args: {}, {}, {}", args[0], args[1], args[2]));
 })
 ```
-`my_call_name`: this is the string name of the operation to be registered.
-`Some(3)`: this is the number of arguments we should expect. If the arguments present in the request from the frontend do not match this number, then the handler will not even be called, and instead an error will be returned to the frontend (the calling `Promise` will be rejected). If `None` is supplied instead, args will not be validated.
-`|context| {...}`: this is a closure or function, which must return `Result<String, String>`. The returned value (Ok or Error) is then sent to the frontend as an `accept()` or `reject()` on the original `Promise`.
+1. `my_call_name`: this is the string name of the operation to be registered.
+2. `Some(3)`: this is the number of arguments we should expect. If the arguments present in the request from the frontend do not match this number, then the handler will not even be called, and instead an error will be returned to the frontend (the calling `Promise` will be rejected). If `None` is supplied instead, args will not be validated.
+3. `|context| {...}`: this is a closure or function, which must return `Result<String, String>`. The returned value (Ok or Error) is then sent to the frontend as an `accept()` or `reject()` on the original `Promise`.
 
 ## Putting it all together:
 ```
