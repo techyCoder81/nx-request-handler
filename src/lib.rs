@@ -12,6 +12,7 @@ mod message;
 mod default_handlers;
 mod unzipper;
 
+/// An engine for streamlining the handling of backend requests by `skyline-web` applications.
 pub struct RequestEngine {
     is_exit: bool,
     session: WebSession,
@@ -24,11 +25,35 @@ struct Handler {
     pub callback:  Box<dyn Fn(&mut MessageContext) -> Result<String, String>>
 }
 
+
 impl RequestEngine {
+    /// Creates a new RequestEngine, taking ownership of the session in the process.
     pub fn new(session: WebSession) -> Self {
         return RequestEngine{is_exit: false, session: session, handlers: HashMap::new()};
     }
 
+    /// Registers a handler for requests with the given name.
+    /// 
+    /// # Arguments
+    /// * `request_name` - the name of the request to listen for
+    /// * `arg_count` - an optional number of arguments to expect. If `None` is supplied, this
+    ///     argument does nothing. If `Some` is supplied, then the engine will validate that the
+    ///     inbound request has the required arguments present before calling the registered 
+    ///     handler. If the argument count is incorrect, the handler will not be called and an
+    ///     error will be returned to the frontend instead.
+    /// * `handler` - this is a closure or function, which takes a `MessageContext` and must return 
+    ///     `Result<String, String>`. The returned value (`Ok` or `Err`) is then sent to the frontend
+    ///     as an `accept()` or `reject()` on the original `Promise`. Note that the returned string 
+    ///     can be populated with JSON data. Such JSON can then be used in the frontend via `JSON.parse()`
+    ///     to retreive complex structures.
+    /// 
+    /// Example:
+    /// ```
+    /// engine.register("my_call_name", Some(3), |context| {
+    ///     let args = context.arguments.unwrap();
+    ///     return Ok(format!("args: {}, {}, {}", args[0], args[1], args[2]));
+    /// })
+    /// ```
     pub fn register<S: ToString>(
         &mut self, request_name: S, 
         arg_count: Option<usize>, 
@@ -44,13 +69,43 @@ impl RequestEngine {
 
     /// Registers the "default" handlers for some common functionality. 
     /// This aligns with the `nx-request-api` NPM package's DefaultMessenger.
+    /// Default calls:
+    /// * `ping` 
+    ///     - returns ok if the backend responded to the request
+    /// * `read_file` 
+    ///     - returns the file's contents as a string
+    /// * `download_file` 
+    ///     - downloads the given file to the given location
+    /// * `delete_file` 
+    ///     - deletes the given file
+    /// * `write_file` 
+    ///     - writes the given string to the given file location
+    /// * `get_md5`
+    ///     - returns the md5 checksum of the given file
+    /// * `unzip`
+    ///     - unzips the given file as to the given location
+    /// * `file_exists`
+    ///     - returns whether the given path exists and is a file
+    /// * `dir_exists`
+    ///     - returns whether the given path exists and is a directory
+    /// * `list_all_files`
+    ///     - returns a tree structure of the given directory, recursively
+    /// * `list_dir`
+    ///     - returns a list of the files and directories in the given path (non recursive)
+    /// * `get_request`
+    ///     - performs a GET request (using `smashnet`) and returns the body as a string
+    /// * `exit_session`
+    ///     - signals the engine to shutdown and the session to close, unblocking `start()`
+    /// * `exit_application`
+    ///     - closes the application entirely (you will return to the home menu)
     pub fn register_defaults(&mut self) -> &mut Self {
         default_handlers::register_defaults(self);
         return self;
     }
 
-    /// This is the bulk of the operation. This function
-    /// loops and blocks until shutdown() has been called by a handler.
+    /// Start the request engine. This will block and internally loop until `shutdown()` 
+    /// has been called by a handler (such as with `exitSession()` in the 
+    /// `DefaultMessenger`, or via `context.shutdown()` in a registered custom handler);
     pub fn start(&mut self) {
         while !self.is_exit {
             println!("listening");

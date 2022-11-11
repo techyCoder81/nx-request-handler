@@ -11,7 +11,7 @@ Then, it's as simple as creating a `RequestEngine` using that session:
 let engine = RequestEngine::new(my_session);
 ```
 
-Then, register the default handlers if desired:
+Then, register the default handlers if desired (see below for available default calls):
 ```rust
 engine.register_defaults();
 ```
@@ -120,3 +120,34 @@ try {
 }
 ```
 Note: it is also possible to `extend` the `DefaultMessenger` or the `BasicMessenger` classes to abstract away some of the work of custom calls.
+
+# Default calls
+When using `DefaultMessenger` in the frontend, and calling `register_defaults()` on the backend `RequestEngine`,  the following operations will be supported by default:
+* `ping` 
+    - returns ok if the backend responded to the request
+* `read_file` 
+    - returns the file's contents as a string
+* `download_file` 
+    - downloads the given file to the given location
+* `delete_file` 
+    - deletes the given file
+* `write_file` 
+    - writes the given string to the given file location
+* `get_md5`
+    - returns the md5 checksum of the given file
+* `unzip`
+    - unzips the given file as to the given location
+* `file_exists`
+    - returns whether the given path exists and is a file
+* `dir_exists`
+    - returns whether the given path exists and is a directory
+* `list_all_files`
+    - returns a tree structure of the given directory, recursively
+* `list_dir`
+    - returns a list of the files and directories in the given path (non recursive)
+* `get_request`
+    - performs a GET request (using `smashnet`) and returns the body as a string
+* `exit_session`
+    - signals the engine to shutdown and the session to close, unblocking `start()`
+* `exit_application`
+    - closes the application entirely (you will return to the home menu)

@@ -30,7 +30,7 @@ pub struct MessageContext<'a> {
 }
 
 impl <'a>MessageContext<'a> {
-    pub fn build(message: Message, session: &WebSession) -> MessageContext {
+    fn build(message: Message, session: &WebSession) -> MessageContext {
         return MessageContext { id: message.id, call_name: message.call_name, arguments: message.arguments, session: session, is_shutdown: false }
     }
     pub fn shutdown(&mut self) {
@@ -51,11 +51,11 @@ impl <'a>MessageContext<'a> {
             more: false
         }).unwrap());
     }
-    pub fn return_bool(&self, result: bool) {
+    fn return_bool(&self, result: bool) {
         //println!("Sending {}", result);
         self.return_ok(result.to_string().as_str());
     }
-    pub fn return_ok(&self, message: &str) {
+    fn return_ok(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending OK");
 
@@ -79,7 +79,7 @@ impl <'a>MessageContext<'a> {
             //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
         }
     }
-    pub fn return_error(&self, message: &str) {
+    fn return_error(&self, message: &str) {
         //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
         //println!("Sending ERROR");
         let total_length = message.len();
