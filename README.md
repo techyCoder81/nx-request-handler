@@ -1,6 +1,12 @@
 # nx-request-handler
 A messaging handler for `skyline-web` plugins, as a streamlined backend implementation for the [nx-request-api NPM package](https://www.npmjs.com/package/nx-request-api).
 
+## Problem
+This crate exists to solve a specific problem. In `skyline-web` applications, it can be hard to manage an appropriate separation of responsibilities between the rust backend and the javascript frontend. This is made worse by the lack of a comprehensive way to perform backend operations on the plugin with standard async patterns in the frontend, using promises to do work. Instead, there is only a global event listener which we can attach listeners to. Additionally, its a huge pain to write the backend itself. Most of these resolve to a big match statement, and typically people have not been able to return complex datatypes to the frontend. For these reasons, skyline-web applications tend to become unmaintainable in certain ways.
+
+## The (Partial) Solution
+This crate (and the [associated NPM package](https://www.npmjs.com/package/nx-request-api)) provides a streamlined way to manage frontend-backend request operations in `skyline-web` applications. Functionally , they `Promise`-ifying all backend calls, providing a way for backend operations to report progress, as well as for backend operations to return even complex data structures back to the frontend (one of the default provided implementations will build a recursive tree structure for a given directory, for example). On the rust side, it uses a relatively straightforward builder pattern to register handlers for named backend operations and control the lifecycle the session. When taken together, the system allows you to more easily centralize your business logic in the frontend, and tread the backend (plugin) more like a server, with discrete operations available for all of your basic operations (and many basic operations built-in by default).
+
 # Example Usage
 
 ## Basic Usage
