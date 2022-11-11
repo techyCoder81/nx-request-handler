@@ -97,11 +97,12 @@ try {
     console.info(obj.some_field);
 
 
-    // generic invocation examples for custom handlers
+    // generic invocation examples for custom handlers. 
+    // These examples align with the custom handlers registered in the above Rust example.
     // simple string-based request, no arguments
     let version = await messenger.customRequest("get_sdcard_root", null);
 
-    // string-based request, with no arguments
+    // string-based request, with three arguments
     let result = await messenger.customRequest("call_with_args", ["arg1", "arg2", "arg3"]);
 
     // request which returns a bool instead of a string
