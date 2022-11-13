@@ -249,6 +249,11 @@ pub fn register_defaults(engine: &mut RequestEngine) {
         unsafe { skyline::nn::oe::ExitApplication();}
         // application is now closed, so we cannot return meaningfully.
     });
+    engine.register("log", None, |context| {
+        let args = context.arguments.as_ref().unwrap();
+        println!("Frontend Log: {}", args[0]);
+        Ok("ok".to_string())
+    });
 }
 
 
