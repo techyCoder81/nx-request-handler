@@ -7,7 +7,7 @@ This crate exists to solve a specific problem. In `skyline-web` applications, it
 ## The Solution
 Fundamentally, this crate attempts to ensure that your backend implementation **feels like idiomatic rust**, and your frontend **feels like idiomatic typescript/javascript**. This crate and the [associated NPM package](https://www.npmjs.com/package/nx-request-api) provides a streamlined way to manage frontend-backend request operations in `skyline-web` applications. 
 
-On the frontend, they `Promise`-ify all calls on the frontend side, provide a way for backend operations to report progress, and allow backend operations to return relatively complex data structures back to the frontend (see `list_dir_all`, which builds and then returns a recursive tree structure for a given directory). 
+On the frontend, they `Promise`-ify all javascript/typescript calls, provide a way for backend operations to report progress, and allow backend operations to return relatively complex data structures back to the frontend (see `list_dir_all`, which builds and then returns a recursive tree structure for a given directory). 
 
 On the rust side, it uses a relatively straightforward builder pattern to register handlers for named backend operations and control the lifecycle the session. Individual, simple, and minimal backend calls can be defined, which in aggregate allow the frontend to perform complex sequences of operations. Additionally, the default included handlers provide most of the basic operations a plugin will likely need from the start.
 
@@ -79,7 +79,7 @@ RequestEngine::new(session)
         // report more progress partway through
         context.send_progress(Progress::new("Halfway there".to_string(), "we are halfway there!".to_string(), 50));
         do_other_long_thing(args[1]);
-        result
+        Ok("finished!")
     })
     .register("get_version", None, |context| {
         let path = "sd:/ultimate/mods/hdr/ui/hdr_version.txt";
