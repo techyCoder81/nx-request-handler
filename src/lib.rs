@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 
 mod response;
 mod message;
-mod default_handlers;
+pub mod default_handlers;
 mod unzipper;
 
 /// progress data
@@ -17,12 +17,12 @@ pub struct Progress {
     pub title: String,
     pub info: String,
     /// an u32 in the range 0-100
-    pub progress: u32
+    pub progress: f64
 }
 
 impl Progress {
-    pub fn new(title: String, info: String, progress: u32) -> Self {
-        return Progress { title: title, info: info, progress: progress }
+    pub fn new(title: String, info: String, progress: f64) -> Self {
+        return Progress { title: title, info: info, progress: progress.max(0.0).min(1.0) }
     }
 }
 

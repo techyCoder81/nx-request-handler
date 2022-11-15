@@ -3,6 +3,7 @@ use skyline_web::WebSession;
 use std::fmt;
 use crate::response::*;
 use crate::Progress;
+use serde_json::json;
 
 /// this represents the message format that we will
 /// receive from the frontend.
@@ -64,22 +65,22 @@ impl <'a>MessageContext<'a> {
             id: "progress".to_string(), 
             message: serde_json::to_string(&progress)
                 .unwrap()
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"").trim().to_string(), 
+                .replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"").trim().to_string(), 
             more: false
         }).unwrap());
+        println!("sent progress: {}", progress.progress);
     }
     pub(crate) fn return_bool(&self, result: bool) {
         //println!("Sending {}", result);
         self.return_ok(result.to_string().as_str());
     }
-    pub(crate) fn return_ok(&self, message: &str) {
-        //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
-        //println!("Sending OK");
-
+    fn return_result(&self, orig_message: &str, is_ok: bool) {
+        let cleaned_message = orig_message.replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"");
+        let message = cleaned_message.trim();
         let total_length = message.len();
         let mut index = 0;
 
+        // send the data in chunks
         while index < total_length {
             let mut end_index = (index + CHUNK_SIZE).min(total_length);
             let mut slice = &message[index..end_index];
@@ -89,32 +90,19 @@ impl <'a>MessageContext<'a> {
             }
             
             let data = serde_json::to_string(&OkOrErrorResponse{ 
-                id: self.id.clone(), ok: true, message: slice.trim().to_string(), more: (end_index < total_length)
+                id: self.id.clone(), ok: is_ok, message: slice.to_string(), more: (end_index < total_length)
             }).unwrap();
-            //println!("Sending chunk:\n{}", data);
+            println!("Sending chunk:\n'{}'", data);
             self.session.send(&data);
             index = end_index;
             //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
         }
     }
+    pub(crate) fn return_ok(&self, message: &str) {
+        self.return_result(message, true);
+    }
     pub(crate) fn return_error(&self, message: &str) {
-        //let message = message.replace("\r", "").replace("\\", "\\\\").replace("\"", "\\\"");
-        //println!("Sending ERROR");
-        let total_length = message.len();
-        let mut index = 0;
-        while index < total_length {
-            let mut end_index = (index + CHUNK_SIZE).min(total_length);
-            let mut slice = &message[index..end_index];
-            while slice.chars().last().unwrap() == '\\' {
-                end_index = end_index + 1;
-                slice = &message[index..end_index];
-            }
-            self.session.send(&serde_json::to_string(&OkOrErrorResponse{ 
-                id: self.id.clone(), ok: false, message: slice.trim().to_string(), more: (end_index < total_length)
-            }).unwrap());
-            index = end_index;
-            //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
-        }
+        self.return_result(message, false);
     }
 }
 const CHUNK_SIZE: usize = 25000;
