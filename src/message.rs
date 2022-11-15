@@ -68,7 +68,7 @@ impl <'a>MessageContext<'a> {
                 .replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"").trim().to_string(), 
             more: false
         }).unwrap());
-        println!("sent progress: {}", progress.progress);
+        //println!("sent progress: {}", progress.progress);
     }
     pub(crate) fn return_bool(&self, result: bool) {
         //println!("Sending {}", result);
