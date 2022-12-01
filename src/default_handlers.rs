@@ -170,6 +170,14 @@ pub fn unzip(context: &mut MessageContext) -> Result<String, String> {
     Ok("unzip succeeded".to_string())
 }
 
+pub fn mkdir(context: &mut MessageContext) -> Result<String, String> {
+    let dir = &context.arguments.as_ref().unwrap()[0];
+    return match std::fs::create_dir_all(dir) {
+        Ok(ok) => Ok(format!("{:?}", ok)),
+        Err(err) => Ok(format!("{:?}", err)),
+    };
+}
+
 pub fn list_all_files(context: &mut MessageContext) -> Result<String, String> {
     let args = context.arguments.as_ref().unwrap();
     let path = args[0].clone();
@@ -317,6 +325,7 @@ pub(crate) fn register_defaults(engine: &mut RequestEngine) {
         println!("Frontend Log: {}", args[0]);
         Ok("ok".to_string())
     });
+    engine.register("mkdir", Some(1), |context| {mkdir(context)});
 }
 
 

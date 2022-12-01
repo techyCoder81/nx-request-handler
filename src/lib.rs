@@ -3,9 +3,6 @@ use std::{collections::HashMap};
 use crate::message::*;
 use serde::{Serialize, Deserialize};
 
-
-
-
 mod response;
 mod message;
 pub mod default_handlers;
