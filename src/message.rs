@@ -92,7 +92,11 @@ impl <'a>MessageContext<'a> {
             let data = serde_json::to_string(&OkOrErrorResponse{ 
                 id: self.id.clone(), ok: is_ok, message: slice.to_string(), more: (end_index < total_length)
             }).unwrap();
-            println!("Sending chunk:\n'{}'", data);
+            if data.len() < 500 {
+                println!("Sending chunk:\n'{}'", data);
+            } else {
+                println!("Sending chunk of lenth: {}", data.len());
+            }
             self.session.send(&data);
             index = end_index;
             //println!("Chunked send percentage: {}%", 100.0 * index as f32/total_length as f32)
