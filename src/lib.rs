@@ -129,7 +129,7 @@ impl RequestEngine {
                 },
                 Err(e) => {
                     let str = match &msg.len() {
-                        0..300 => msg.to_string(),
+                        0..=300 => msg.to_string(),
                         _ => format!("{} <truncated for performance>", &msg[0..299])
                     };
                     println!("Failed to deserialize message: {}\nError: {:?}", str, e);
