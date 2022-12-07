@@ -122,14 +122,14 @@ impl RequestEngine {
         while !self.is_exit {
             println!("listening");
             // block until we get a message from the frontend
-            let msg = self.session.recv_max(0x2000000);
+            let msg = self.session.recv();
             let message = match serde_json::from_str::<Message>(&msg) {
                 Ok(message) => {
                     message
                 },
                 Err(e) => {
                     let str = match &msg.len() {
-                        0..=300 => msg.to_string(),
+                        0..=450 => msg.to_string(),
                         _ => format!("{} <truncated for performance> {}", &msg[0..299], &msg[(msg.len() - 100)..(msg.len() - 1)])
                     };
                     println!("Failed to deserialize message: {}\nError: {:?}", str, e);
