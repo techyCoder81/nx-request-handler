@@ -122,7 +122,7 @@ impl RequestEngine {
         while !self.is_exit {
             println!("listening");
             // block until we get a message from the frontend
-            let msg = self.session.recv_max(0x200000);
+            let msg = self.session.recv_max(0x2000000);
             let message = match serde_json::from_str::<Message>(&msg) {
                 Ok(message) => {
                     message
