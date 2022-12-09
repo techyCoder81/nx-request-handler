@@ -65,7 +65,7 @@ impl <'a>MessageContext<'a> {
             id: "progress".to_string(), 
             message: serde_json::to_string(&progress)
                 .unwrap()
-                .replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"").trim().to_string(), 
+                .replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    ").trim().to_string(), 
             more: false
         }).unwrap());
         //println!("sent progress: {}", progress.progress);
@@ -75,7 +75,7 @@ impl <'a>MessageContext<'a> {
         self.return_ok(result.to_string().as_str());
     }
     fn return_result(&self, orig_message: &str, is_ok: bool) {
-        let cleaned_message = orig_message.replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"");
+        let cleaned_message = orig_message.replace("\r", "").replace("\0", "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    ");
         let message = cleaned_message.trim();
         let total_length = message.len();
         let mut index = 0;
