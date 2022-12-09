@@ -84,7 +84,8 @@ impl <'a>MessageContext<'a> {
         while index < total_length {
             let mut end_index = (index + CHUNK_SIZE).min(total_length);
             let mut slice = &message[index..end_index];
-            while slice.chars().last().unwrap() == '\\' {
+            let chars = slice.chars();
+            while chars.nth_back(1).unwrap() == '\\' || chars.last().unwrap() == '\\' {
                 end_index = end_index + 1;
                 slice = &message[index..end_index];
             }
