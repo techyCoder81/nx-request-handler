@@ -35,8 +35,9 @@ pub fn read_file(context: &mut MessageContext) -> Result<String, String> {
     let args = context.arguments.as_ref().unwrap();
     let path = args[0].clone();
     let exists = Path::new(&path).exists();
+    
     if !exists {
-        return Err("requested file does not exist!".to_string());
+        return Err(format!("requested file ({}) does not exist!", path));
     } else {
         return match fs::read_to_string(path) {
             Ok(data) => Ok(data),
@@ -105,7 +106,7 @@ pub fn get_md5(context: &mut MessageContext) -> Result<String, String> {
     let path = args[0].clone();
     let exists = Path::new(&path).exists();
     if !exists {
-        return Err("requested file does not exist!".to_string());
+        return Err(format!("requested file ({}) does not exist!", path));
     } else {
         // read the file
         let data = match fs::read(path) {
